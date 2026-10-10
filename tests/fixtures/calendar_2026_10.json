@@ -1,0 +1,24 @@
+{
+  "data": {
+    "dailiesForAMonth": [
+      {
+        "day": "2026-10-05T05:00:00.000Z",
+        "puzzles": [
+          {"urlPath": "2026-10-05/crossword", "puzzle": {"id": "pz-daily-1005:puzzle", "name": "High Grades", "game": {"slug": "crossword"}, "communityPuzzle": null, "currentAccountGamePlayed": {"completed": true, "completedAt": "2026-10-05T09:15:00.000Z"}}},
+          {"urlPath": "2026-10-05/crossword/mini", "puzzle": {"id": "pz-mini-1005:puzzle", "name": "Media Diet", "game": {"slug": "crossword"}, "communityPuzzle": null, "currentAccountGamePlayed": {"completed": true, "completedAt": null}}},
+          {"urlPath": "2026-10-05/crossword/big", "puzzle": {"id": "pz-big-kicks:puzzle", "name": "Kicks In", "game": {"slug": "crossword"}, "communityPuzzle": null, "currentAccountGamePlayed": {"completed": false, "completedAt": null}}},
+          {"urlPath": "2026-10-05/crossword", "puzzle": {"id": "pz-community:puzzle", "name": "Fan Made", "game": {"slug": "crossword"}, "communityPuzzle": {"id": "cp-1"}, "currentAccountGamePlayed": null}},
+          {"urlPath": "2026-10-05/typeshift", "puzzle": {"id": "pz-typeshift:puzzle", "name": null, "game": {"slug": "typeshift"}, "communityPuzzle": null, "currentAccountGamePlayed": null}},
+          {"urlPath": "2026-10-05/spelltower/strange/-1", "puzzle": {"id": "pz-spelltower:puzzle", "name": null, "game": {"slug": "spelltower"}, "communityPuzzle": null, "currentAccountGamePlayed": null}}
+        ]
+      },
+      {
+        "day": "2026-10-06T05:00:00.000Z",
+        "puzzles": [
+          {"urlPath": "2026-10-06/crossword", "puzzle": {"id": "pz-daily-1006:puzzle", "name": "Stretching the Joke", "game": {"slug": "crossword"}, "communityPuzzle": null, "currentAccountGamePlayed": null}},
+          {"urlPath": "2026-10-06/crossword/big", "puzzle": {"id": "pz-big-kicks:puzzle", "name": "Kicks In", "game": {"slug": "crossword"}, "communityPuzzle": null, "currentAccountGamePlayed": {"completed": false, "completedAt": null}}}
+        ]
+      }
+    ]
+  }
+}
