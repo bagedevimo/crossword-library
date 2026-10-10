@@ -3,9 +3,13 @@ from pathlib import Path
 
 import pytest
 import puz
+import requests
+import responses
 
 from crossword_library import fetch
 from crossword_library.fetch import FetchError, FetchedPuzzle, XwordDlFetcher, convert
+
+PUZZMO_GRAPHQL = "https://www.puzzmo.com/_api/prod/graphql"
 
 PUZZLES = Path(__file__).parent / "fixtures" / "puzzles"
 
@@ -78,3 +82,18 @@ def test_downloader_finder_key():
     downloader = fetch._UrlPathDownloader("2026-10-05/crossword/big")
     assert downloader.finder_key == "today:/2026-10-05/crossword/big"
     assert "authorization" not in {k.lower() for k in downloader.session.headers}
+
+
+@responses.activate
+def test_download_requests_carry_timeout():
+    responses.post(PUZZMO_GRAPHQL, json={"data": {}})
+    with pytest.raises(FetchError):
+        fetch.fetch_raw("2026-10-05/crossword")
+    assert responses.calls[0].request.req_kwargs["timeout"] == fetch.DOWNLOAD_TIMEOUT_SECONDS == 30
+
+
+@responses.activate
+def test_download_timeout_is_fetch_error():
+    responses.post(PUZZMO_GRAPHQL, body=requests.Timeout("slow"))
+    with pytest.raises(FetchError):
+        fetch.fetch_raw("2026-10-05/crossword")

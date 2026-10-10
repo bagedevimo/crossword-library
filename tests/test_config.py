@@ -53,3 +53,14 @@ def test_database_url_required():
 def test_invalid_values(key, value):
     with pytest.raises(ConfigError, match=key):
         load_settings(BASE | {key: value})
+
+
+@pytest.mark.parametrize("value", ["-1", "nan", "inf", "-inf"])
+def test_download_delay_must_be_finite_and_non_negative(value):
+    with pytest.raises(ConfigError, match="DOWNLOAD_DELAY_SECONDS"):
+        load_settings(BASE | {"DOWNLOAD_DELAY_SECONDS": value})
+
+
+def test_sync_time_with_utc_offset_rejected():
+    with pytest.raises(ConfigError, match="SYNC_TIME"):
+        load_settings(BASE | {"SYNC_TIME": "06:00+13:00"})

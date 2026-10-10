@@ -99,3 +99,12 @@ def test_token_expires_at():
 @pytest.mark.parametrize("token", ["not-a-jwt", _jwt({"sub": "x"}), "a.!!!.c", ""])
 def test_token_expires_at_unparseable(token):
     assert token_expires_at(token) is None
+
+
+def test_parse_month_tolerates_non_dict_errors():
+    with pytest.raises(PuzzmoAPIError, match="boom"):
+        parse_month({"errors": ["boom"], "data": None})
+
+
+def test_token_expires_at_huge_exp():
+    assert token_expires_at(_jwt({"exp": 10**20})) is None

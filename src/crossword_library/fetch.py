@@ -7,11 +7,15 @@ user's account. xword-dl sends a random Puzzmo-Gameplay-Id instead.
 
 from __future__ import annotations
 
+import functools
 from dataclasses import dataclass
 
 import requests
 from xword_dl.downloader.puzzmodownloader import PuzzmoDownloader
 from xword_dl.util import XWordDLException, sanitize_for_puzfile
+
+
+DOWNLOAD_TIMEOUT_SECONDS = 30
 
 
 class FetchError(Exception):
@@ -31,6 +35,10 @@ class _UrlPathDownloader(PuzzmoDownloader):
 
     def __init__(self, url_path: str):
         super().__init__()
+        # xword-dl's session.post has no timeout; a stalled download would hang the sync.
+        self.session.request = functools.partial(
+            self.session.request, timeout=DOWNLOAD_TIMEOUT_SECONDS
+        )
         self.finder_key = "today:/" + url_path
         self.date_string = url_path[:10]
 

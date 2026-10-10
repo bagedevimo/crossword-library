@@ -102,3 +102,20 @@ def test_token_not_in_error_messages():
     with pytest.raises(PuzzmoAPIError) as excinfo:
         client.fetch_month(2026, 10)
     assert "secret-token" not in str(excinfo.value)
+
+
+@responses.activate
+def test_malformed_calendar_entry_is_api_error_without_token():
+    payload = json.loads(json.dumps(CALENDAR))
+    first = next(
+        p
+        for day in payload["data"]["dailiesForAMonth"]
+        for p in day["puzzles"]
+        if p["urlPath"].endswith("/crossword")
+    )
+    first["urlPath"] = "bad/crossword"
+    responses.post(API_URL, json=payload)
+    client, _ = make_client()
+    with pytest.raises(PuzzmoAPIError, match="malformed") as excinfo:
+        client.fetch_month(2026, 10)
+    assert "secret-token" not in str(excinfo.value)

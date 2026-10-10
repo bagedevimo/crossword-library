@@ -80,8 +80,9 @@ def parse_month(payload: dict) -> list[CalendarEntry]:
     """Extract publisher crosswords from a dailiesForAMonth response."""
     errors = payload.get("errors")
     if errors:
-        messages = "; ".join(str(e.get("message", "?")) for e in errors)
-        if any("Must be logged in" in str(e.get("message", "")) for e in errors):
+        texts = [str(e.get("message", "?")) if isinstance(e, dict) else str(e) for e in errors]
+        messages = "; ".join(texts)
+        if any("Must be logged in" in t for t in texts):
             raise PuzzmoAuthError(f"Puzzmo rejected the token ({messages}); replace PUZZMO_TOKEN")
         raise PuzzmoAPIError(f"Puzzmo GraphQL error: {messages}")
 
@@ -123,7 +124,7 @@ def token_expires_at(token: str) -> datetime | None:
         body += "=" * (-len(body) % 4)
         claims = json.loads(base64.urlsafe_b64decode(body))
         return datetime.fromtimestamp(int(claims["exp"]), tz=timezone.utc)
-    except (IndexError, ValueError, KeyError, TypeError):
+    except (IndexError, ValueError, KeyError, TypeError, OverflowError, OSError):
         return None
 
 
@@ -187,7 +188,13 @@ class PuzzmoClient:
                         payload = response.json()
                     except ValueError:
                         raise PuzzmoAPIError("Puzzmo returned a non-JSON response") from None
-                    return parse_month(payload)
+                    try:
+                        return parse_month(payload)
+                    except (KeyError, ValueError, TypeError, AttributeError) as exc:
+                        raise PuzzmoAPIError(
+                            f"malformed calendar data for {year}-{month:02d}: "
+                            f"{type(exc).__name__}: {exc}"
+                        ) from exc
             if attempt < self._retries:
                 self._sleep(self._backoff_seconds * 2**attempt)
         raise PuzzmoAPIError(
