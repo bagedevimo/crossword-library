@@ -1,0 +1,16 @@
+{
+ "name": "Synthetic Daily",
+ "emoji": "🃏",
+ "puzzle": "## Metadata\n\ntitle: Synthetic Daily\nauthor: Test Author\ndate: Not set\ncopyright: © 2026\nwidth: 4\nheight: 4\nemoji: 🃏\n\n## Grid\n\nCARD\nAREA\nREAR\nDART\n\n## Clues\n\nA1. Playing ___ ~ CARD\nA5. Region ~ AREA\nA6. Back ~ REAR\nA7. Bullseye seeker ~ DART\n\nD1. Greeting ___ ~ CARD\nD2. Zone ~ AREA\nD3. Hind ~ REAR\nD4. Pub missile ~ DART\n",
+ "author": null,
+ "dailyTitle": "Oct 8, 2026",
+ "authors": [
+  {
+   "publishingName": "Test Author",
+   "username": "test",
+   "usernameID": "xwc",
+   "name": "test",
+   "id": "test-author:user"
+  }
+ ]
+}

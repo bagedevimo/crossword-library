@@ -1,0 +1,16 @@
+{
+ "name": "Synthetic Big",
+ "emoji": "❤️",
+ "puzzle": "## Metadata\n\ntitle: Synthetic Big\nauthor: Big Author\ndate: Not set\ncopyright: © 2026\nwidth: 5\nheight: 5\nemoji: ❤️\n\n## Grid\n\nHEART\nEMBER\nABUSE\nRESIN\nTREND\n\n## Clues\n\nA1. Ticker ~ HEART\nA6. Glowing coal ~ EMBER\nA7. Misuse ~ ABUSE\nA8. Tree sap ~ RESIN\nA9. Fad ~ TREND\n\nD1. Core ~ HEART\nD2. Fire remnant ~ EMBER\nD3. Mistreat ~ ABUSE\nD4. Amber source ~ RESIN\nD5. Tendency ~ TREND\n\n## Design\n\n<style>\nO { background: circle }\n</style>\n\nO....\n.O...\n..O..\n...O.\n....O\n",
+ "author": null,
+ "dailyTitle": "Oct 5-7, 2026",
+ "authors": [
+  {
+   "publishingName": "Big Author",
+   "username": "test",
+   "usernameID": "xwc",
+   "name": "test",
+   "id": "test-author:user"
+  }
+ ]
+}
