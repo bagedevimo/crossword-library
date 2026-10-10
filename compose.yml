@@ -17,5 +17,17 @@ services:
       timeout: 3s
       retries: 15
 
+  app:
+    build: .
+    profiles: ["app"]
+    environment:
+      DATABASE_URL: postgresql://crossword:crossword@postgres:5432/crossword_library
+      PUZZMO_TOKEN: ${PUZZMO_TOKEN:-}
+      SYNC_TIME: ${SYNC_TIME:-06:00}
+      DOWNLOAD_DELAY_SECONDS: ${DOWNLOAD_DELAY_SECONDS:-3}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   pgdata:

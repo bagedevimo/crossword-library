@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import argparse
 import logging
+import signal
 import sys
 from datetime import date, datetime, timezone
 
-from . import db, store
+from . import db, scheduler, store
 from .config import ConfigError, Settings, load_settings
 from .fetch import XwordDlFetcher
 from .puzzmo import PuzzmoClient, token_expires_at
@@ -144,6 +145,19 @@ def cmd_status(args, settings: Settings) -> int:
     return EXIT_OK
 
 
+def cmd_serve(args, settings: Settings) -> int:
+    if not settings.puzzmo_token:
+        raise ConfigError("PUZZMO_TOKEN is required for serve")
+    # SIGTERM (docker stop) becomes SystemExit, so a running sync records itself as failed.
+    signal.signal(signal.SIGTERM, lambda signum, frame: sys.exit(0))
+    with db.connect(settings.database_url) as conn:
+        applied = db.migrate(conn)
+    if applied:
+        logging.getLogger(__name__).info("applied migrations: %s", ", ".join(applied))
+    scheduler.serve(settings.sync_time, lambda: run_sync_from_settings(settings))
+    return EXIT_OK
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="crossword-library")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -173,6 +187,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_list.set_defaults(func=cmd_list)
 
     sub.add_parser("status", help="show catalogue, runs and problems").set_defaults(func=cmd_status)
+    sub.add_parser("serve", help="apply migrations, then sync daily at SYNC_TIME (UTC)").set_defaults(
+        func=cmd_serve
+    )
     return parser
 
 
