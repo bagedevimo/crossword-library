@@ -13,8 +13,8 @@ The first slice of the crossword library: a service that
 3. imports which puzzles the user has completed on Puzzmo, keeping a durable
    completion record that can also be set manually.
 
-It runs as a container on **triton** (the home server managed from
-`~/Source/benanderson/infra`) and does a full sync once a day. It is developed
+It runs as a one-shot container on **triton** (the home server managed by the
+user's Ansible infra repo), started once a day by a systemd timer. It is developed
 and tested on the laptop.
 
 ### Changes to the product spec
@@ -100,10 +100,10 @@ One Python package, `crossword_library`, with CLI `crossword-library`.
 | `fetch` | Download puzzle content through `xword-dl` (anonymous). Generic over daily/mini/Big via `finderKey = "today:/" + urlPath`. Returns the original xd text and sanitised `.puz` bytes. |
 | `store` | Postgres access (psycopg 3): catalogue, files, completions, run log. |
 | `sync` | Orchestrates one run (see §5). Takes the advisory lock. |
-| `cli` | `sync [--since DATE] [--retry]`, `mark`/`unmark <puzzle>`, `list`, `status`, `migrate`, `serve`. |
+| `cli` | `sync [--since DATE] [--retry]`, `mark`/`unmark <puzzle>`, `list`, `status`, `migrate`. |
 
 Migrations are numbered plain-SQL files applied by a small runner (`migrate`,
-also run automatically by `serve`). No ORM.
+also run automatically at the start of every `sync`). No ORM.
 
 ## 4. Data model
 
@@ -197,9 +197,12 @@ Every step commits as it goes and skips work already done, so an interrupted run
 including the ~75-minute first import of about 1,500 puzzles, continues where it
 stopped on the next run.
 
-**Schedule:** `serve` applies migrations, then runs `sync` daily at `SYNC_TIME`
-(default `06:00` UTC, just after Puzzmo's rollover). `sync` can also be run by
-hand at any time.
+**Schedule:** the container runs one `sync` (applying any pending migrations
+first) and exits. A systemd timer on triton starts it daily, shortly after
+Puzzmo's 05:00 UTC rollover; `Persistent=true` catches up a run missed while the
+host was down. `sync` can also be run by hand at any time. SIGTERM (container or
+unit stop) becomes `SystemExit`, so an interrupted run is recorded as `failed`.
+A future web UI will be a separate long-running process.
 
 ## 6. Error handling
 
@@ -223,7 +226,6 @@ Alerting is deferred to the web UI.
 |---|---|---|
 | `DATABASE_URL` | — | required |
 | `PUZZMO_TOKEN` | — | required for `sync`; never logged; sent only by the `puzzmo` module |
-| `SYNC_TIME` | `06:00` | UTC, used by `serve` |
 | `DOWNLOAD_DELAY_SECONDS` | `3` | |
 | `SYNC_SINCE` | `2023-10` | earliest month scanned; confirm Puzzmo's first month with crosswords during implementation (empty months are harmless) |
 
@@ -253,14 +255,17 @@ triton, `DATABASE_URL`'s password and `PUZZMO_TOKEN` come from the stack's
 
 - **Local:** `mise` with `.tool-versions` (Python), `uv` for dependencies,
   `compose.yml` with `postgres:17` (and an optional app service), and pytest.
-- **Image:** a `Dockerfile` whose default command is `crossword-library serve`.
+- **Image:** a `Dockerfile` whose default command is `crossword-library sync`.
+  GitHub Actions (`.github/workflows/ci.yml`) runs the test suite against a
+  Postgres service, then on pushes to `main` builds `linux/amd64` and pushes
+  `ghcr.io/bagedevimo/crossword-library` tagged with the commit SHA and
+  `latest`. Repo and image are public; the image contains no secrets.
 - **triton** (later task, following `infra/docs/adding-a-service.md`):
   `stacks/crossword-library/compose.yml` with the app and `postgres:17` on a
   stack-local network (not `edge`), named volume `crossword-library_pgdata`,
   `secrets.sops.env` holding `PUZZMO_TOKEN` and the Postgres password, and the
-  stack registered in `group_vars/all/vars.yml`. No Traefik labels or DNS until
-  there is a web UI. The volume should go into the backups work item.
-- **Open:** where the image comes from (a registry, or built on triton). To be
-  decided in the deployment task.
+  stack registered in `group_vars/all/vars.yml`; the app image pinned to a SHA
+  tag; a systemd service + timer running `docker compose run --rm app`. No
+  Traefik labels or DNS until there is a web UI. The volume should go into the backups work item.
 - **First import:** `crossword-library sync` (on triton:
-  `docker compose exec app crossword-library sync`).
+  `docker compose run --rm app`, or start the timer's service unit).

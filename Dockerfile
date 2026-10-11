@@ -18,4 +18,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 RUN useradd --system --uid 10001 app
 USER app
 
-CMD ["crossword-library", "serve"]
+CMD ["crossword-library", "sync"]

@@ -23,7 +23,6 @@ services:
     environment:
       DATABASE_URL: postgresql://crossword:crossword@postgres:5432/crossword_library
       PUZZMO_TOKEN: ${PUZZMO_TOKEN:-}
-      SYNC_TIME: ${SYNC_TIME:-06:00}
       DOWNLOAD_DELAY_SECONDS: ${DOWNLOAD_DELAY_SECONDS:-3}
       SYNC_SINCE: ${SYNC_SINCE:-2023-10}
     depends_on:

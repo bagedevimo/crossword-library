@@ -66,6 +66,32 @@ def test_sync_runs_and_reports(env, monkeypatch, capsys):
     assert "eyJleHAi" not in out  # token never printed
 
 
+def test_sync_applies_pending_migrations_first(env, monkeypatch, capsys):
+    calls = []
+    real_migrate = cli.db.migrate
+    monkeypatch.setattr(cli.db, "migrate", lambda conn: calls.append("migrate") or real_migrate(conn))
+    monkeypatch.setattr(cli, "make_client", lambda token: FakeClient([]))
+    monkeypatch.setattr(cli, "make_fetcher", lambda: FakeFetcher())
+    assert cli.main(["sync", "--since", "2026-10"]) == 0
+    assert calls == ["migrate"]
+
+
+def test_sync_turns_sigterm_into_system_exit(env, monkeypatch):
+    import signal
+
+    installed = {}
+    monkeypatch.setattr(cli.signal, "signal", lambda sig, handler: installed.__setitem__(sig, handler))
+    monkeypatch.setattr(cli, "make_client", lambda token: FakeClient([]))
+    monkeypatch.setattr(cli, "make_fetcher", lambda: FakeFetcher())
+    assert cli.main(["sync", "--since", "2026-10"]) == 0
+    with pytest.raises(SystemExit):
+        installed[signal.SIGTERM](signal.SIGTERM, None)
+
+
+def test_serve_command_removed(env, capsys):
+    assert cli.main(["serve"]) == 2
+
+
 def test_sync_already_running_exit_code(env, monkeypatch, capsys):
     def boom(*args, **kwargs):
         raise SyncAlreadyRunning("another sync is already running")

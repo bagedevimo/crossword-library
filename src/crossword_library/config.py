@@ -6,7 +6,7 @@ import math
 import os
 from collections.abc import Mapping
 from dataclasses import dataclass
-from datetime import date, time
+from datetime import date
 
 
 class ConfigError(Exception):
@@ -17,7 +17,6 @@ class ConfigError(Exception):
 class Settings:
     database_url: str
     puzzmo_token: str | None
-    sync_time: time
     download_delay_seconds: float
     sync_since: date
 
@@ -28,14 +27,6 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
     database_url = env.get("DATABASE_URL")
     if not database_url:
         raise ConfigError("DATABASE_URL is required")
-
-    raw_time = env.get("SYNC_TIME", "06:00")
-    try:
-        sync_time = time.fromisoformat(raw_time)
-    except ValueError:
-        raise ConfigError(f"SYNC_TIME must be HH:MM (UTC), got {raw_time!r}") from None
-    if sync_time.tzinfo is not None:
-        raise ConfigError(f"SYNC_TIME must be HH:MM (UTC) without an offset, got {raw_time!r}")
 
     raw_delay = env.get("DOWNLOAD_DELAY_SECONDS", "3")
     try:
@@ -57,7 +48,6 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
     return Settings(
         database_url=database_url,
         puzzmo_token=env.get("PUZZMO_TOKEN") or None,
-        sync_time=sync_time,
         download_delay_seconds=delay,
         sync_since=since,
     )

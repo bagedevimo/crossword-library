@@ -20,11 +20,10 @@ uv run crossword-library migrate
 
 | Command | What it does |
 |---|---|
-| `crossword-library sync [--since YYYY-MM] [--retry]` | Catalogue, completions, then missing downloads. Safe to re-run; the first full sync takes about 75 minutes. |
+| `crossword-library sync [--since YYYY-MM] [--retry]` | Apply pending migrations, then catalogue, completions and missing downloads. Safe to re-run; the first full sync takes about 75 minutes. The container's default command. |
 | `crossword-library status` | Catalogue counts, recent runs, problem puzzles, token expiry. |
 | `crossword-library list [--series mini] [--done\|--todo]` | List puzzles. |
 | `crossword-library mark REF [--at ISO]` / `unmark REF` | Manual completion; REF is an id from `list`, a path like `2026-10-05/crossword/big`, or a Puzzmo id. |
-| `crossword-library serve` | Apply migrations, then sync daily at `SYNC_TIME` (UTC). The container's default command. |
 
 Exit codes: 0 ok/partial, 1 failed, 2 configuration error, 3 sync already running.
 
@@ -40,5 +39,12 @@ CROSSWORD_LIVE=1 uv run pytest tests/test_live.py   # opt-in, hits Puzzmo
 
 - Puzzle downloads are anonymous on purpose: an authenticated download would
   mark the puzzle as started on your Puzzmo account.
-- Deployment to triton (`~/Source/benanderson/infra`) is a separate task; see
-  the spec, section 9.
+- The test fixtures in `tests/fixtures/puzzles` are synthetic. Don't commit real
+  puzzles captured with `scripts/capture_puzzle_fixture.py`; they're copyrighted.
+
+## Image and scheduling
+
+CI builds `ghcr.io/bagedevimo/crossword-library` (linux/amd64) on every push to
+`main`, tagged with the commit SHA and `latest`. The container runs one sync and
+exits, so schedule it externally, e.g. a systemd timer running
+`docker compose run --rm app` daily. Pin the SHA tag in production.
